@@ -1,0 +1,651 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PAHSUS UN-SDG Sustainability Analytics Portal</title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@500;600;700;800&display=swap" rel="stylesheet">
+    <!-- FontAwesome 6 Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- jQuery & DataTables CSS -->
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css">
+    <!-- Select2.js CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css">
+    <!-- Chart.js 4.x -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Export Libraries: html2pdf.js & SheetJS XLSX -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <!-- Custom EVS Stylesheet -->
+    <link rel="stylesheet" href="styles.css">
+    <!-- Master Data Bundle -->
+    <script src="data.js"></script>
+</head>
+<body>
+
+    <!-- Header Navbar -->
+    <header class="navbar">
+        <div class="nav-container">
+            <div class="brand">
+                <div class="brand-icon" id="headerBrandIcon">
+                    <i class="fa-solid fa-leaf"></i>
+                </div>
+                <div class="brand-title">
+                    <h1>Punyashlok Ahilyadevi Holkar Solapur University (PAHSUS)</h1>
+                    <p>UN Sustainable Development Goals (SDG) Interactive Analytics Portal — AQAR & Green Audit Data</p>
+                </div>
+            </div>
+            <div class="header-controls">
+                <!-- Academic Year Slicer -->
+                <div class="slicer-group">
+                    <span class="slicer-label"><i class="fa-solid fa-calendar-days"></i> Academic Year:</span>
+                    <button class="slicer-btn active" data-year="All">All Years</button>
+                    <button class="slicer-btn" data-year="2022-23">2022-23</button>
+                    <button class="slicer-btn" data-year="2023-24">2023-24</button>
+                </div>
+
+                <!-- Export & Reporting Dropdown -->
+                <div class="export-dropdown-group">
+                    <button class="export-btn" id="exportDropdownBtn">
+                        <i class="fa-solid fa-download"></i> Export Actions <i class="fa-solid fa-chevron-down" style="font-size: 0.75rem; margin-left: 2px;"></i>
+                    </button>
+                    <div class="export-dropdown-menu" id="exportDropdownMenu">
+                        <button class="export-menu-item" onclick="exportTabToPDF()">
+                            <i class="fa-solid fa-file-pdf" style="color: #EF4444;"></i> Export Active Tab as PDF
+                        </button>
+                        <button class="export-menu-item" onclick="exportToExcel()">
+                            <i class="fa-solid fa-file-excel" style="color: #10B981;"></i> Export Tab Data to Excel (.xlsx)
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- 7 Dedicated Page Navigation Tabs -->
+    <nav class="tab-navigation">
+        <div class="tab-container">
+            <button class="nav-tab-btn active" data-tab="1">
+                <i class="fa-solid fa-chart-pie"></i> Executive Overview
+            </button>
+            <button class="nav-tab-btn" data-tab="2">
+                <i class="fa-solid fa-faucet-drip"></i> SDG 6 Clean Water
+            </button>
+            <button class="nav-tab-btn" data-tab="3">
+                <i class="fa-solid fa-bolt"></i> SDG 7 Clean Energy
+            </button>
+            <button class="nav-tab-btn" data-tab="4">
+                <i class="fa-solid fa-recycle"></i> SDG 12 Waste Mgmt
+            </button>
+            <button class="nav-tab-btn" data-tab="5">
+                <i class="fa-solid fa-smog"></i> SDG 13 Climate Action
+            </button>
+            <button class="nav-tab-btn" data-tab="6">
+                <i class="fa-solid fa-tree"></i> SDG 15 Life on Land
+            </button>
+            <button class="nav-tab-btn" data-tab="7">
+                <i class="fa-solid fa-handshake"></i> SDG 17 Partnerships & Directory
+            </button>
+        </div>
+    </nav>
+
+    <!-- Main Dashboard Container -->
+    <main class="dashboard-container">
+
+        <!-- Dynamic Filter Bar with Searchable Select2 Dropdown & Comparison Mode Control -->
+        <div class="filter-bar">
+            <div class="filter-item">
+                <label for="locationFilter" id="locationFilterLabel"><i class="fa-solid fa-magnifying-glass-location"></i> Global SDG Goal Filter:</label>
+                <select id="locationFilter" class="filter-select select2-enable">
+                    <option value="All">All Categories (Tab Summary)</option>
+                </select>
+            </div>
+
+            <!-- Comparison Mode Toggle Button (Hidden on Tab 1) -->
+            <button id="compareToggleBtn" class="btn-compare hidden">
+                <i class="fa-solid fa-scale-balanced"></i> Compare Mode: OFF
+            </button>
+
+            <!-- Hidden Comparison Control Group -->
+            <div id="comparisonControlGroup" class="comparison-control-group">
+                <div class="compare-select-wrapper">
+                    <label for="selectCompareA"><i class="fa-solid fa-square" style="color: var(--active-sdg-color);"></i> Facility / Dept A:</label>
+                    <select id="selectCompareA" class="filter-select select2-enable"></select>
+                </div>
+                <div class="compare-select-wrapper">
+                    <label for="selectCompareB"><i class="fa-solid fa-square" style="color: #64748B;"></i> Facility / Dept B:</label>
+                    <select id="selectCompareB" class="filter-select select2-enable"></select>
+                </div>
+            </div>
+
+            <div style="font-size: 0.82rem; color: var(--text-secondary); font-weight: 600; width: 100%; text-align: right; margin-top: 0.35rem;">
+                <i class="fa-solid fa-database" style="color: var(--active-sdg-color);"></i> Ingested: 198 Master Records across 6 Worksheets
+            </div>
+        </div>
+
+        <!-- TAB 1: EXECUTIVE OVERVIEW -->
+        <section id="tab-panel-1" class="tab-content-panel active">
+            
+            <!-- 6 KPI Banner Cards -->
+            <div class="kpi-grid">
+                <div class="kpi-card">
+                    <div class="kpi-header">
+                        <span class="kpi-title">Daily Water Usage</span>
+                        <span class="kpi-badge">SDG 6</span>
+                    </div>
+                    <div class="kpi-value" id="t1-kpi-water">1,45,000</div>
+                    <div class="kpi-subtext">Liters / Day (19 Locations)</div>
+                </div>
+
+                <div class="kpi-card">
+                    <div class="kpi-header">
+                        <span class="kpi-title">Solar Gen Ratio</span>
+                        <span class="kpi-badge">SDG 7</span>
+                    </div>
+                    <div class="kpi-value" id="t1-kpi-solar">45.8%</div>
+                    <div class="kpi-subtext"><span class="kpi-trend up"><i class="fa-solid fa-arrow-up"></i> +12.4% Renewable</span></div>
+                </div>
+
+                <div class="kpi-card">
+                    <div class="kpi-header">
+                        <span class="kpi-title">Solid Waste Managed</span>
+                        <span class="kpi-badge">SDG 12</span>
+                    </div>
+                    <div class="kpi-value" id="t1-kpi-waste">42,000</div>
+                    <div class="kpi-subtext">Kg / Year Vermicomposting</div>
+                </div>
+
+                <div class="kpi-card">
+                    <div class="kpi-header">
+                        <span class="kpi-title">Campus Green Cover</span>
+                        <span class="kpi-badge">SDG 15</span>
+                    </div>
+                    <div class="kpi-value" id="t1-kpi-greencover">39.6%</div>
+                    <div class="kpi-subtext">198 Acres of 500 Acres</div>
+                </div>
+
+                <div class="kpi-card">
+                    <div class="kpi-header">
+                        <span class="kpi-title">Net Carbon Footprint</span>
+                        <span class="kpi-badge">SDG 13</span>
+                    </div>
+                    <div class="kpi-value" id="t1-kpi-carbon">385.2</div>
+                    <div class="kpi-subtext"><span class="kpi-trend up" style="color:#16A34A;"><i class="fa-solid fa-arrow-down"></i> -8.5% CO2 Reduction</span></div>
+                </div>
+
+                <div class="kpi-card">
+                    <div class="kpi-header">
+                        <span class="kpi-title">Active MoUs Count</span>
+                        <span class="kpi-badge">SDG 17</span>
+                    </div>
+                    <div class="kpi-value" id="t1-kpi-mou">18</div>
+                    <div class="kpi-subtext"><span class="kpi-trend up"><i class="fa-solid fa-arrow-up"></i> +63.6% MoU Growth</span></div>
+                </div>
+            </div>
+
+            <!-- Charts Grid -->
+            <div class="visual-grid-3">
+                <div class="visual-card">
+                    <div class="visual-header">
+                        <div class="visual-title"><i class="fa-solid fa-chart-pie"></i> Campus Land Use Breakdown (500 Acres)</div>
+                        <button class="chart-download-btn" onclick="downloadChartPNG('landUseDonutChart', 'Campus_Land_Use')" title="Download Chart PNG">
+                            <i class="fa-solid fa-camera"></i>
+                        </button>
+                    </div>
+                    <div class="chart-container"><canvas id="landUseDonutChart"></canvas></div>
+                </div>
+
+                <div class="visual-card">
+                    <div class="visual-header">
+                        <div class="visual-title"><i class="fa-solid fa-chart-column"></i> YoY Environmental Footprint Comparison</div>
+                        <button class="chart-download-btn" onclick="downloadChartPNG('envFootprintBarChart', 'Env_Footprint_Comparison')" title="Download Chart PNG">
+                            <i class="fa-solid fa-camera"></i>
+                        </button>
+                    </div>
+                    <div class="chart-container"><canvas id="envFootprintBarChart"></canvas></div>
+                </div>
+            </div>
+
+            <!-- Multi-SDG Performance Matrix Table -->
+            <div class="visual-card visual-grid-full">
+                <div class="visual-header">
+                    <div class="visual-title"><i class="fa-solid fa-table-list"></i> PAHSUS Multi-SDG Performance Matrix</div>
+                </div>
+                <div class="table-container">
+                    <table class="custom-table">
+                        <thead>
+                            <tr>
+                                <th>SDG Goal</th>
+                                <th>Indicator Focus</th>
+                                <th>2022-23 Baseline</th>
+                                <th>2023-24 Performance</th>
+                                <th>YoY Growth / Impact</th>
+                                <th>Audit Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><strong>SDG 6: Clean Water & Sanitation</strong></td>
+                                <td>RWH Storage & Wastewater Recycling</td>
+                                <td>4,50,000 Liters</td>
+                                <td>6,20,000 Liters</td>
+                                <td>+37.8% Ground Recharge</td>
+                                <td><span class="status-badge on-track">On Track</span></td>
+                            </tr>
+                            <tr>
+                                <td><strong>SDG 7: Affordable & Clean Energy</strong></td>
+                                <td>Solar Rooftop Generation Offset</td>
+                                <td>33.4% Grid Offset</td>
+                                <td>45.8% Grid Offset</td>
+                                <td>+12.4% Renewable Share</td>
+                                <td><span class="status-badge target">Target Exceeded</span></td>
+                            </tr>
+                            <tr>
+                                <td><strong>SDG 12: Responsible Consumption</strong></td>
+                                <td>Solid Waste Processing & Vermicomposting</td>
+                                <td>38,000 Kg/Year</td>
+                                <td>42,000 Kg/Year</td>
+                                <td>+10.5% Organic Processing</td>
+                                <td><span class="status-badge on-track">On Track</span></td>
+                            </tr>
+                            <tr>
+                                <td><strong>SDG 13: Climate Action</strong></td>
+                                <td>Net GHG Carbon Footprint</td>
+                                <td>421.0 MT CO2e</td>
+                                <td>385.2 MT CO2e</td>
+                                <td>-8.5% CO2 Reduction</td>
+                                <td><span class="status-badge on-track">On Track</span></td>
+                            </tr>
+                            <tr>
+                                <td><strong>SDG 15: Life on Land</strong></td>
+                                <td>Tree Census Count & Green Cover Ratio</td>
+                                <td>8,200 Trees (37.0%)</td>
+                                <td>9,800 Trees (39.6%)</td>
+                                <td>+1,600 Native Trees Planted</td>
+                                <td><span class="status-badge progress">In Progress</span></td>
+                            </tr>
+                            <tr>
+                                <td><strong>SDG 17: Partnerships for Goals</strong></td>
+                                <td>Active Functional MoUs & Research Projects</td>
+                                <td>11 Active MoUs</td>
+                                <td>18 Active MoUs</td>
+                                <td>+63.6% Partnership Growth</td>
+                                <td><span class="status-badge target">Target Exceeded</span></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+        </section>
+
+        <!-- TAB 2: SDG 6 - CLEAN WATER & SANITATION -->
+        <section id="tab-panel-2" class="tab-content-panel">
+            
+            <div class="kpi-grid" style="grid-template-columns: repeat(3, 1fr);">
+                <div class="kpi-card">
+                    <div class="kpi-header"><span class="kpi-title">Daily Water Consumption</span><span class="kpi-badge">SDG 6</span></div>
+                    <div class="kpi-value" id="t2-kpi-water">1,38,000</div>
+                    <div class="kpi-subtext">Liters / Day (Filtered Subset)</div>
+                </div>
+
+                <div class="kpi-card">
+                    <div class="kpi-header"><span class="kpi-title">Rainwater Harvesting Storage</span><span class="kpi-badge">SDG 6</span></div>
+                    <div class="kpi-value">6,20,000</div>
+                    <div class="kpi-subtext">Liters Annual Ground Recharge</div>
+                </div>
+
+                <div class="kpi-card">
+                    <div class="kpi-header"><span class="kpi-title">Recycled Wastewater Capacity</span><span class="kpi-badge">SDG 6</span></div>
+                    <div class="kpi-value">45,000</div>
+                    <div class="kpi-subtext">Liters / Day STP Reuse for Gardening</div>
+                </div>
+            </div>
+
+            <div class="visual-grid-2">
+                <div class="visual-card">
+                    <div class="visual-header">
+                        <div class="visual-title"><i class="fa-solid fa-faucet"></i> Departmental Daily Water Consumption (Liters/Day)</div>
+                        <button class="chart-download-btn" onclick="downloadChartPNG('waterDeptBarChart', 'Departmental_Water_Consumption')" title="Download Chart PNG">
+                            <i class="fa-solid fa-camera"></i>
+                        </button>
+                    </div>
+                    <div class="chart-container"><canvas id="waterDeptBarChart"></canvas></div>
+                </div>
+
+                <div class="visual-card">
+                    <div class="visual-header">
+                        <div class="visual-title"><i class="fa-solid fa-database"></i> Campus Storage Tanks & Rainwater Capture Units (Liters)</div>
+                        <button class="chart-download-btn" onclick="downloadChartPNG('waterStorageChart', 'Water_Storage_Units')" title="Download Chart PNG">
+                            <i class="fa-solid fa-camera"></i>
+                        </button>
+                    </div>
+                    <div class="chart-container"><canvas id="waterStorageChart"></canvas></div>
+                </div>
+            </div>
+
+        </section>
+
+        <!-- TAB 3: SDG 7 - AFFORDABLE & CLEAN ENERGY -->
+        <section id="tab-panel-3" class="tab-content-panel">
+            
+            <div class="kpi-grid">
+                <div class="kpi-card">
+                    <div class="kpi-header"><span class="kpi-title">Grid Power Consumption</span><span class="kpi-badge">SDG 7</span></div>
+                    <div class="kpi-value" id="t3-kpi-grid">3,16,500</div>
+                    <div class="kpi-subtext">kWh / Year (MSEDCL Supply)</div>
+                </div>
+
+                <div class="kpi-card">
+                    <div class="kpi-header"><span class="kpi-title">Rooftop Solar PV Generation</span><span class="kpi-badge">SDG 7</span></div>
+                    <div class="kpi-value" id="t3-kpi-solar">1,45,000</div>
+                    <div class="kpi-subtext">kWh / Year Renewable Power</div>
+                </div>
+
+                <div class="kpi-card">
+                    <div class="kpi-header"><span class="kpi-title">Solar Offset Percentage</span><span class="kpi-badge">SDG 7</span></div>
+                    <div class="kpi-value" id="t3-kpi-offset">45.8%</div>
+                    <div class="kpi-subtext"><span class="kpi-trend up"><i class="fa-solid fa-arrow-up"></i> +12.4% YoY</span></div>
+                </div>
+
+                <div class="kpi-card">
+                    <div class="kpi-header"><span class="kpi-title">LED Fixture Adoption Ratio</span><span class="kpi-badge">SDG 7</span></div>
+                    <div class="kpi-value">88.5%</div>
+                    <div class="kpi-subtext">Target: 100% Efficiency</div>
+                </div>
+            </div>
+
+            <div class="visual-grid-2">
+                <div class="visual-card">
+                    <div class="visual-header">
+                        <div class="visual-title"><i class="fa-solid fa-bolt"></i> Grid Electricity (MSEDCL) vs Rooftop Solar PV Generation</div>
+                        <button class="chart-download-btn" onclick="downloadChartPNG('energyComboChart', 'Grid_vs_Solar_Energy')" title="Download Chart PNG">
+                            <i class="fa-solid fa-camera"></i>
+                        </button>
+                    </div>
+                    <div class="chart-container"><canvas id="energyComboChart"></canvas></div>
+                </div>
+
+                <div class="visual-card">
+                    <div class="visual-header">
+                        <div class="visual-title"><i class="fa-solid fa-solar-panel"></i> Solar Hot Water Systems & Energy Efficiency Breakdown</div>
+                        <button class="chart-download-btn" onclick="downloadChartPNG('energyEfficiencyChart', 'Solar_Hot_Water_Efficiency')" title="Download Chart PNG">
+                            <i class="fa-solid fa-camera"></i>
+                        </button>
+                    </div>
+                    <div class="chart-container"><canvas id="energyEfficiencyChart"></canvas></div>
+                </div>
+            </div>
+
+        </section>
+
+        <!-- TAB 4: SDG 12 - RESPONSIBLE CONSUMPTION & WASTE -->
+        <section id="tab-panel-4" class="tab-content-panel">
+            
+            <div class="kpi-grid">
+                <div class="kpi-card">
+                    <div class="kpi-header"><span class="kpi-title">Solid Waste Managed</span><span class="kpi-badge">SDG 12</span></div>
+                    <div class="kpi-value">42,000</div>
+                    <div class="kpi-subtext">Kg / Year Processing</div>
+                </div>
+
+                <div class="kpi-card">
+                    <div class="kpi-header"><span class="kpi-title">Organic & Mess Waste</span><span class="kpi-badge">SDG 12</span></div>
+                    <div class="kpi-value">16,200</div>
+                    <div class="kpi-subtext">Kg / Year Vermicomposted</div>
+                </div>
+
+                <div class="kpi-card">
+                    <div class="kpi-header"><span class="kpi-title">Paper Shredding & Recycling</span><span class="kpi-badge">SDG 12</span></div>
+                    <div class="kpi-value">11,000</div>
+                    <div class="kpi-subtext">Kg / Year Recycled</div>
+                </div>
+
+                <div class="kpi-card">
+                    <div class="kpi-header"><span class="kpi-title">E-Waste Safe Disposal</span><span class="kpi-badge">SDG 12</span></div>
+                    <div class="kpi-value">4,100</div>
+                    <div class="kpi-subtext">Kg / Year MPCB Certified</div>
+                </div>
+            </div>
+
+            <div class="visual-grid-2">
+                <div class="visual-card">
+                    <div class="visual-header">
+                        <div class="visual-title"><i class="fa-solid fa-recycle"></i> Campus Waste Streams Generation (Kg/Year)</div>
+                        <button class="chart-download-btn" onclick="downloadChartPNG('wasteStackedAreaChart', 'Campus_Waste_Streams')" title="Download Chart PNG">
+                            <i class="fa-solid fa-camera"></i>
+                        </button>
+                    </div>
+                    <div class="chart-container"><canvas id="wasteStackedAreaChart"></canvas></div>
+                </div>
+
+                <div class="visual-card">
+                    <div class="visual-header">
+                        <div class="visual-title"><i class="fa-solid fa-flask"></i> Hazardous Chemical & Biomedical Waste Management</div>
+                        <button class="chart-download-btn" onclick="downloadChartPNG('wasteCategoryBarChart', 'Hazardous_Waste_Mgmt')" title="Download Chart PNG">
+                            <i class="fa-solid fa-camera"></i>
+                        </button>
+                    </div>
+                    <div class="chart-container"><canvas id="wasteCategoryBarChart"></canvas></div>
+                </div>
+            </div>
+
+        </section>
+
+        <!-- TAB 5: SDG 13 - CLIMATE ACTION & CARBON FOOTPRINT -->
+        <section id="tab-panel-5" class="tab-content-panel">
+            
+            <div class="kpi-grid">
+                <div class="kpi-card">
+                    <div class="kpi-header"><span class="kpi-title">Scope 1 (Direct Emissions)</span><span class="kpi-badge">SDG 13</span></div>
+                    <div class="kpi-value">120.5</div>
+                    <div class="kpi-subtext">MT CO2e (Vehicles & DG)</div>
+                </div>
+
+                <div class="kpi-card">
+                    <div class="kpi-header"><span class="kpi-title">Scope 2 (Electricity)</span><span class="kpi-badge">SDG 13</span></div>
+                    <div class="kpi-value">410.2</div>
+                    <div class="kpi-subtext">MT CO2e (MSEDCL Grid)</div>
+                </div>
+
+                <div class="kpi-card">
+                    <div class="kpi-header"><span class="kpi-title">Scope 3 (Commute/Paper)</span><span class="kpi-badge">SDG 13</span></div>
+                    <div class="kpi-value">280.5</div>
+                    <div class="kpi-subtext">MT CO2e (Travel & Paper)</div>
+                </div>
+
+                <div class="kpi-card">
+                    <div class="kpi-header"><span class="kpi-title">Net Carbon Footprint</span><span class="kpi-badge">SDG 13</span></div>
+                    <div class="kpi-value">385.2</div>
+                    <div class="kpi-subtext">MT CO2e Net After Offsets</div>
+                </div>
+            </div>
+
+            <div class="visual-grid-2">
+                <div class="visual-card">
+                    <div class="visual-header">
+                        <div class="visual-title"><i class="fa-solid fa-smog"></i> Carbon Emissions Waterfall (Scope 1, 2, 3 & Offsets)</div>
+                        <button class="chart-download-btn" onclick="downloadChartPNG('carbonWaterfallChart', 'Carbon_Emissions_Waterfall')" title="Download Chart PNG">
+                            <i class="fa-solid fa-camera"></i>
+                        </button>
+                    </div>
+                    <div class="chart-container"><canvas id="carbonWaterfallChart"></canvas></div>
+                </div>
+
+                <div class="visual-card">
+                    <div class="visual-header">
+                        <div class="visual-title"><i class="fa-solid fa-pie-chart"></i> Emissions Share by Source Category</div>
+                        <button class="chart-download-btn" onclick="downloadChartPNG('carbonPieChart', 'Emissions_Share_by_Source')" title="Download Chart PNG">
+                            <i class="fa-solid fa-camera"></i>
+                        </button>
+                    </div>
+                    <div class="chart-container"><canvas id="carbonPieChart"></canvas></div>
+                </div>
+            </div>
+
+        </section>
+
+        <!-- TAB 6: SDG 15 - LIFE ON LAND & BIODIVERSITY -->
+        <section id="tab-panel-6" class="tab-content-panel">
+            
+            <div class="kpi-grid">
+                <div class="kpi-card">
+                    <div class="kpi-header"><span class="kpi-title">Total Campus Area</span><span class="kpi-badge">SDG 15</span></div>
+                    <div class="kpi-value">500.0</div>
+                    <div class="kpi-subtext">Total Acres</div>
+                </div>
+
+                <div class="kpi-card">
+                    <div class="kpi-header"><span class="kpi-title">Green Cover Area</span><span class="kpi-badge">SDG 15</span></div>
+                    <div class="kpi-value">198.0</div>
+                    <div class="kpi-subtext">Acres (39.6% Ratio)</div>
+                </div>
+
+                <div class="kpi-card">
+                    <div class="kpi-header"><span class="kpi-title">Total Native Tree Census</span><span class="kpi-badge">SDG 15</span></div>
+                    <div class="kpi-value">9,800</div>
+                    <div class="kpi-subtext">Surveyed Native Trees</div>
+                </div>
+
+                <div class="kpi-card">
+                    <div class="kpi-header"><span class="kpi-title">Tree Carbon Stock</span><span class="kpi-badge">SDG 15</span></div>
+                    <div class="kpi-value">510.0</div>
+                    <div class="kpi-subtext">Tons CO2e / Year Sequestration</div>
+                </div>
+            </div>
+
+            <div class="visual-grid-3">
+                <div class="visual-card">
+                    <div class="visual-header"><div class="visual-title"><i class="fa-solid fa-seedling"></i> Carbon Sequestration Callout</div></div>
+                    <div class="highlight-box">
+                        <div style="font-size: 3.8rem; color: var(--active-sdg-color); font-weight: 800; font-family: var(--font-heading); line-height: 1;">
+                            510.0
+                        </div>
+                        <div style="font-size: 1.15rem; font-weight: 700; color: var(--text-primary); margin: 0.75rem 0 0.5rem;">
+                            Tons CO2e / Year Carbon Stock
+                        </div>
+                        <p style="font-size: 0.85rem; color: var(--text-secondary);">
+                            Calculated across <strong>9,800+ Neem, Peepal, Banyan, Tamarind, & Medicinal Trees</strong> in the PAHSUS Tree Census.
+                        </p>
+                    </div>
+                </div>
+
+                <div class="visual-card">
+                    <div class="visual-header">
+                        <div class="visual-title"><i class="fa-solid fa-tree"></i> Tree Census Species Breakdown & NSS Plantation Drives</div>
+                        <button class="chart-download-btn" onclick="downloadChartPNG('treeSpeciesBarChart', 'Tree_Census_Species_Breakdown')" title="Download Chart PNG">
+                            <i class="fa-solid fa-camera"></i>
+                        </button>
+                    </div>
+                    <div class="chart-container"><canvas id="treeSpeciesBarChart"></canvas></div>
+                </div>
+            </div>
+
+        </section>
+
+        <!-- TAB 7: SDG 17 - PARTNERSHIPS & MASTER DIRECTORY -->
+        <section id="tab-panel-7" class="tab-content-panel">
+            
+            <div class="kpi-grid">
+                <div class="kpi-card">
+                    <div class="kpi-header"><span class="kpi-title">Active Functional MoUs</span><span class="kpi-badge">SDG 17</span></div>
+                    <div class="kpi-value">18</div>
+                    <div class="kpi-subtext">Total Functional Partnerships</div>
+                </div>
+
+                <div class="kpi-card">
+                    <div class="kpi-header"><span class="kpi-title">Collaborative Seminars</span><span class="kpi-badge">SDG 17</span></div>
+                    <div class="kpi-value">22</div>
+                    <div class="kpi-subtext">Events / Year Conducted</div>
+                </div>
+
+                <div class="kpi-card">
+                    <div class="kpi-header"><span class="kpi-title">Incubator Funding</span><span class="kpi-badge">SDG 17</span></div>
+                    <div class="kpi-value">₹5.0 Cr</div>
+                    <div class="kpi-subtext">PAH Udyam Allocation</div>
+                </div>
+
+                <div class="kpi-card">
+                    <div class="kpi-header"><span class="kpi-title">Funded Research Projects</span><span class="kpi-badge">SDG 17</span></div>
+                    <div class="kpi-value">12</div>
+                    <div class="kpi-subtext">Active Projects Count</div>
+                </div>
+            </div>
+
+            <div class="visual-grid-2">
+                <div class="visual-card">
+                    <div class="visual-header">
+                        <div class="visual-title"><i class="fa-solid fa-cubes"></i> Active MoUs Grouped by Category Domain</div>
+                        <button class="chart-download-btn" onclick="downloadChartPNG('mouDomainTreemap', 'MoUs_Domain_Breakdown')" title="Download Chart PNG">
+                            <i class="fa-solid fa-camera"></i>
+                        </button>
+                    </div>
+                    <div class="chart-container"><canvas id="mouDomainTreemap"></canvas></div>
+                </div>
+
+                <div class="visual-card">
+                    <div class="visual-header">
+                        <div class="visual-title"><i class="fa-solid fa-chart-line"></i> MoU Growth vs Collaborative Seminars & Projects</div>
+                        <button class="chart-download-btn" onclick="downloadChartPNG('mouScatterChart', 'MoU_Growth_Scatter')" title="Download Chart PNG">
+                            <i class="fa-solid fa-camera"></i>
+                        </button>
+                    </div>
+                    <div class="chart-container"><canvas id="mouScatterChart"></canvas></div>
+                </div>
+            </div>
+
+            <!-- Master Searchable Data Directory -->
+            <div class="visual-card visual-grid-full">
+                <div class="visual-header">
+                    <div class="visual-title"><i class="fa-solid fa-database"></i> PAHSUS Master Data Directory (All 198 Records across 6 Worksheets)</div>
+                </div>
+                <div class="table-container">
+                    <table id="masterDataTable" class="display stripe hover cell-border" style="width:100%">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>SDG Sheet</th>
+                                <th>Academic Year</th>
+                                <th>Category</th>
+                                <th>Facility / Department Location</th>
+                                <th>Value</th>
+                                <th>Unit</th>
+                                <th>Source Reference</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <!-- Populated dynamically in app.js -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+        </section>
+
+    </main>
+
+    <!-- Footer & Developer Attribution Bar -->
+    <footer>
+        <div class="footer-container">
+            <div class="footer-left">
+                <i class="fa-solid fa-graduation-cap" style="color: var(--active-sdg-color);"></i>
+                <span>Punyashlok Ahilyadevi Holkar Solapur University (PAHSUS) © 2026 | UN-SDG Sustainability Analytics Portal</span>
+            </div>
+            <div class="footer-right">
+                <i class="fa-solid fa-code" style="color: var(--active-sdg-color);"></i>
+                <span>Developed & Maintained by: <strong>Onkar Kishor Pandhare</strong> | M.Sc. Geoinformatics, School of Earth Sciences</span>
+            </div>
+        </div>
+    </footer>
+
+    <!-- jQuery, DataTables JS, Select2 JS -->
+    <script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
+    <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+    <!-- Controller -->
+    <script src="app.js"></script>
+</body>
+</html>
