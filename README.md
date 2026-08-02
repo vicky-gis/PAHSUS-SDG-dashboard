@@ -1,10 +1,10 @@
-# 🌿 PAHSUS UN-SDG Sustainability Analytics Portal
+#  PAHSUS UN-SDG Sustainability Analytics Portal
 
 An interactive, responsive, and data-driven Web Analytics Dashboard developed for **Punyashlok Ahilyadevi Holkar Solapur University (PAHSUS)** to track, monitor, and visualize United Nations Sustainable Development Goals (UN-SDGs) metrics sourced from university AQAR and Green Audit records.
 
 ---
 
-## 🚀 Live Demo & Installation
+##  Live Page Link
 
 ### Live Dashboard Page:
 🔗 **URL:** [https://vicky-gis.github.io/PAHSUS-SDG-dashboard/](https://vicky-gis.github.io/PAHSUS-SDG-dashboard/)
