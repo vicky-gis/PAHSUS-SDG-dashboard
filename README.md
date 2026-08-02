@@ -4,6 +4,13 @@ An interactive, responsive, and data-driven Web Analytics Dashboard developed fo
 
 ---
 
+## 🚀 Live Demo & Installation
+
+### Live Dashboard Page:
+🔗 **URL:** [https://vicky-gis.github.io/PAHSUS-SDG-dashboard/](https://vicky-gis.github.io/PAHSUS-SDG-dashboard/)
+
+---
+
 ## 📌 Project Overview
 
 This sub-project transitions traditional static SDG reporting into a modern, dynamic web platform. It processes **198 master spatial & analytical records across 6 worksheets** (Academic Years 2022–23 & 2023–24) to provide real-time campus sustainability insights.
