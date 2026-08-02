@@ -4,9 +4,9 @@ An interactive, responsive, and data-driven Web Analytics Dashboard developed fo
 
 ---
 
-##  Live Page Link
+##  Live Link
 
-### Live Dashboard Page:
+### Dashboard Page:
 🔗 **URL:** [https://vicky-gis.github.io/PAHSUS-SDG-dashboard/](https://vicky-gis.github.io/PAHSUS-SDG-dashboard/)
 
 ---
